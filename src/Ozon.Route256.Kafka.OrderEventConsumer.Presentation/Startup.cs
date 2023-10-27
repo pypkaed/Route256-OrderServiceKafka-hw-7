@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Ozon.Route256.Kafka.OrderEventConsumer.Domain;
 using Ozon.Route256.Kafka.OrderEventConsumer.Infrastructure;
 using Ozon.Route256.Kafka.OrderEventConsumer.Infrastructure.Common;
@@ -17,14 +16,18 @@ public sealed class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var connectionString = _configuration["ConnectionString"]!;
+        services
+            .AddLogging();
 
+        var connectionString = _configuration["ConnectionString"]!;
         services
             .AddFluentMigrator(
                 connectionString,
                 typeof(SqlMigration).Assembly);
 
-        services.AddScoped<IItemRepository, ItemRepository>(_ => new ItemRepository(connectionString));
+        services.AddSingleton<IItemRepository, ItemRepository>(_ => new ItemRepository(connectionString));
+        services.AddSingleton<ItemHandler>();
+        services.AddHostedService<KafkaBackgroundService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

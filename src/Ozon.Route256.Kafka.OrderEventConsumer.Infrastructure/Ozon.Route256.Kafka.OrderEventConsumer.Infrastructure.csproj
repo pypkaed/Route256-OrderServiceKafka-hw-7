@@ -3,6 +3,7 @@
     <ProjectReference Include="..\Ozon.Route256.Kafka.OrderEventConsumer.Domain\Ozon.Route256.Kafka.OrderEventConsumer.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="FluentMigrator.Runner" />
     <PackageReference Include="FluentMigrator.Runner.Postgres" />
