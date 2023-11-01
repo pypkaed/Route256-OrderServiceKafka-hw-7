@@ -13,7 +13,7 @@ internal sealed class OrderEventGenerator
 
         var sellerIds = Enumerable
             .Range(start: 0, count: 20_000)
-            .Select(_ => (long)rnd.Next(minValue: 100_000, maxValue: 300_000) * 100_000)
+            .Select(_ => (long)rnd.Next(minValue: 100_000, maxValue: 300_000) * 1_000_000)
             .ToArray();
 
         var currencies = new[] { "RUB", "KZT" };
@@ -56,8 +56,7 @@ internal sealed class OrderEventGenerator
             .Customize<OrderEvent>(
                 t => t
                     .With(d => d.Moment, DateTime.UtcNow - TimeSpan.FromSeconds(eventsCount - events))
-                    .With(d => d.Status, OrderEvent.OrderStatus.Created)
-                    .With(d => d.Positions, fixture.CreateMany<OrderEvent.OrderEventPosition>().ToArray()));
+                    .With(d => d.Status, OrderEvent.OrderStatus.Created));
 
         while (events < eventsCount)
         {
@@ -70,7 +69,7 @@ internal sealed class OrderEventGenerator
                     continue;
                 }
 
-                sentOrderEvent.Status = rnd.NextSingle() > 0.7
+                sentOrderEvent.Status = rnd.NextSingle() < 0.7
                     ? OrderEvent.OrderStatus.Delivered
                     : OrderEvent.OrderStatus.Canceled;
 
