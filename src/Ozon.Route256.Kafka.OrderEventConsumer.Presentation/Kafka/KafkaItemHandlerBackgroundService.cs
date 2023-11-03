@@ -12,12 +12,12 @@ using Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka.Serializers;
 
 namespace Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka;
 
-public class KafkaBackgroundService : BackgroundService
+public class KafkaItemHandlerBackgroundService : BackgroundService
 {
     private readonly KafkaAsyncConsumer<Ignore, OrderEvent> _consumer;
-    private readonly ILogger<KafkaBackgroundService> _logger;
+    private readonly ILogger<KafkaItemHandlerBackgroundService> _logger;
 
-    public KafkaBackgroundService(IServiceProvider serviceProvider, ILogger<KafkaBackgroundService> logger)
+    public KafkaItemHandlerBackgroundService(IServiceProvider serviceProvider, ILogger<KafkaItemHandlerBackgroundService> logger)
     {
         // TODO: IOptions
         // TODO: KafkaServiceExtensions: services.AddKafkaHandler<TKey, TValue, THandler<TKey, TValue>>(serializers, topic, groupId);

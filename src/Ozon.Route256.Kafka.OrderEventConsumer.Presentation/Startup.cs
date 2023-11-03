@@ -39,7 +39,9 @@ public sealed class Startup
         services.AddSingleton<IItemRepository, ItemRepository>(_ => new ItemRepository(connectionString));
         services.AddSingleton<ISellerPaymentRepository, SellerPaymentRepository>(_ => new SellerPaymentRepository(connectionString));
         services.AddSingleton<ItemHandler>();
-        services.AddHostedService<KafkaBackgroundService>();
+        services.AddSingleton<SellerPaymentHandler>();
+        services.AddHostedService<KafkaItemHandlerBackgroundService>();
+        services.AddHostedService<KafkaSellerPaymentBackgroundService>();
     }
 
     private static void MapCompositeTypes()
