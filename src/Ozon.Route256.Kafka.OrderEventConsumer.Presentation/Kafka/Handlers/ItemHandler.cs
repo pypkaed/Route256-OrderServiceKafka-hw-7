@@ -17,7 +17,6 @@ public class ItemHandler : IHandler<Ignore, OrderEvent>
 {
     private readonly ILogger<ItemHandler> _logger;
     private readonly IItemRepository _repository;
-    private readonly Random _random = new();
 
     public ItemHandler(
         ILogger<ItemHandler> logger,
@@ -111,6 +110,11 @@ public class ItemHandler : IHandler<Ignore, OrderEvent>
                 canceled += quantity;
                 reserved -= quantity;
                 break;
+        }
+
+        if (reserved < 0)
+        {
+            reserved = 0;
         }
     }
 }
