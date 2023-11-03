@@ -6,12 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Ozon.Route256.Kafka.OrderEventConsumer.Infrastructure.Kafka;
+using Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Contracts;
+using Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka.Handlers;
+using Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka.Serializers;
 
-namespace Ozon.Route256.Kafka.OrderEventConsumer.Presentation;
+namespace Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka;
 
 public class KafkaBackgroundService : BackgroundService
 {
-    private readonly KafkaAsyncConsumer<Ignore, string> _consumer;
+    private readonly KafkaAsyncConsumer<Ignore, OrderEvent> _consumer;
     private readonly ILogger<KafkaBackgroundService> _logger;
 
     public KafkaBackgroundService(IServiceProvider serviceProvider, ILogger<KafkaBackgroundService> logger)
@@ -20,14 +23,14 @@ public class KafkaBackgroundService : BackgroundService
         // TODO: KafkaServiceExtensions: services.AddKafkaHandler<TKey, TValue, THandler<TKey, TValue>>(serializers, topic, groupId);
         _logger = logger;
         var handler = serviceProvider.GetRequiredService<ItemHandler>();
-        _consumer = new KafkaAsyncConsumer<Ignore, string>(
+        _consumer = new KafkaAsyncConsumer<Ignore, OrderEvent>(
             handler,
             "kafka:9092",
             "group_id",
             "order_events",
-            null,
-            null,
-            serviceProvider.GetRequiredService<ILogger<KafkaAsyncConsumer<Ignore, string>>>());
+            keyDeserializer: null,
+            valueDeserializer: new SystemTextJsonDeserializer<OrderEvent>(),
+            serviceProvider.GetRequiredService<ILogger<KafkaAsyncConsumer<Ignore, OrderEvent>>>());
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)
