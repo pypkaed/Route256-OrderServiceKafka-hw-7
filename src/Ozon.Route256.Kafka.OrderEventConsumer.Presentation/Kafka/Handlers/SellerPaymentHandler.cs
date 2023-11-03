@@ -15,6 +15,9 @@ namespace Ozon.Route256.Kafka.OrderEventConsumer.Presentation.Kafka.Handlers;
 
 public class SellerPaymentHandler : IHandler<Ignore, OrderEvent>
 {
+    private const long SellerIdNumbersCount = 1_000_000;
+    private const decimal GrpcNanosMultiplier = 1_000_000_000m;
+
     private readonly ILogger<ItemHandler> _logger;
     private readonly ISellerPaymentRepository _sellerPaymentRepository;
 
@@ -50,8 +53,7 @@ public class SellerPaymentHandler : IHandler<Ignore, OrderEvent>
     {
         foreach (var orderEventPosition in orderEventPositions)
         {
-            // TODO: magic numbers
-            var sellerId = orderEventPosition.ItemId / 1000000;
+            var sellerId = orderEventPosition.ItemId / SellerIdNumbersCount;
 
             using var transaction = CreateTransactionScope();
 
@@ -68,7 +70,7 @@ public class SellerPaymentHandler : IHandler<Ignore, OrderEvent>
             }
 
             decimal units = orderEventPosition.Price.Units;
-            decimal nanos = orderEventPosition.Price.Nanos / 1_000_000_000m;
+            decimal nanos = orderEventPosition.Price.Nanos / GrpcNanosMultiplier;
 
             var payment = orderEventPosition.Quantity * (units + nanos);
 
