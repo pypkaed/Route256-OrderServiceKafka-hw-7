@@ -29,64 +29,88 @@ public class ItemHandler : IHandler<Ignore, OrderEvent>
 
     public async Task Handle(IReadOnlyCollection<ConsumeResult<Ignore, OrderEvent>> messages, CancellationToken token)
     {
-        _logger.LogInformation("zhiopaa");
+        _logger.LogInformation($"Read {messages.Count} messages! :D");
 
         var orderEvents = messages.Select(m => m.Message.Value);
         foreach (var orderEvent in orderEvents)
         {
             var status = orderEvent.Status;
 
-            foreach (var orderEventPosition in orderEvent.Positions)
+            await UpdateItemsAccounting(orderEvent.Positions, status, token);
+        }
+    }
+
+    private async Task UpdateItemsAccounting(
+        OrderEvent.OrderEventPosition[] orderEventPositions,
+        OrderEvent.OrderStatus status,
+        CancellationToken token)
+    {
+        foreach (var orderEventPosition in orderEventPositions)
+        {
+            var itemId = new ItemId(orderEventPosition.ItemId);
+            var quantity = orderEventPosition.Quantity;
+            var modifiedAt = DateTime.Now;
+
+            var currentItemAccounting = await _repository.Get(itemId, token);
+            if (currentItemAccounting is null)
             {
-                var itemId = new ItemId(orderEventPosition.ItemId);
-                var quantity = orderEventPosition.Quantity;
-                var modifiedAt = DateTime.Now;
-
-                var currentItemAccounting = await _repository.Get(itemId, token);
-                if (currentItemAccounting is null)
-                {
-                    await _repository.Add(
-                            new ItemsAccountingV1
-                            {
-                                ItemId = itemId,
-                                Reserved = 0,
-                                Sold = 0,
-                                Canceled = 0,
-                                ModifiedAt = modifiedAt
-                            },
-                        token);
-                }
-
-                long reserved = currentItemAccounting?.Reserved ?? 0;
-                long sold = currentItemAccounting?.Sold ?? 0;
-                long canceled = currentItemAccounting?.Canceled ?? 0;
-
-                switch (status)
-                {
-                    case OrderEvent.OrderStatus.Created:
-                        reserved += quantity;
-                        break;
-                    case OrderEvent.OrderStatus.Delivered:
-                        sold += quantity;
-                        reserved -= quantity;
-                        break;
-                    case OrderEvent.OrderStatus.Canceled:
-                        canceled += quantity;
-                        reserved -= quantity;
-                        break;
-                }
-
-                var model = new ItemsAccountingV1
+                currentItemAccounting = new ItemsAccountingV1
                 {
                     ItemId = itemId,
-                    Reserved = reserved,
-                    Sold = sold,
-                    Canceled = canceled,
+                    Reserved = 0,
+                    Sold = 0,
+                    Canceled = 0,
                     ModifiedAt = modifiedAt
                 };
-
-                await _repository.Update(model, token);
+                await _repository.Add(currentItemAccounting, token);
             }
+
+            CalculateStats(
+                currentItemAccounting,
+                status,
+                quantity,
+                out var reserved,
+                out var sold,
+                out var canceled);
+
+            var model = new ItemsAccountingV1
+            {
+                ItemId = itemId,
+                Reserved = reserved,
+                Sold = sold,
+                Canceled = canceled,
+                ModifiedAt = modifiedAt
+            };
+
+            await _repository.Update(model, token);
+        }
+    }
+
+    private void CalculateStats(
+        ItemsAccountingV1 currentItemAccounting,
+        OrderEvent.OrderStatus status,
+        int quantity,
+        out long reserved,
+        out long sold,
+        out long canceled)
+    {
+        reserved = currentItemAccounting.Reserved;
+        sold = currentItemAccounting.Sold;
+        canceled = currentItemAccounting.Canceled;
+
+        switch (status)
+        {
+            case OrderEvent.OrderStatus.Created:
+                reserved += quantity;
+                break;
+            case OrderEvent.OrderStatus.Delivered:
+                sold += quantity;
+                reserved -= quantity;
+                break;
+            case OrderEvent.OrderStatus.Canceled:
+                canceled += quantity;
+                reserved -= quantity;
+                break;
         }
     }
 }
