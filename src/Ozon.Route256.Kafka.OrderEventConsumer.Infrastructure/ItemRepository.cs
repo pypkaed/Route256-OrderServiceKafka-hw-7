@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
@@ -37,7 +36,6 @@ values (@ItemId, @Reserved, @Sold, @Canceled, @ModifiedAt);
                     @ModifiedAt = model.ModifiedAt
                 },
                 cancellationToken: cancellationToken));
-
     }
 
     public async Task Update(ItemsAccountingV1 model, CancellationToken cancellationToken)
