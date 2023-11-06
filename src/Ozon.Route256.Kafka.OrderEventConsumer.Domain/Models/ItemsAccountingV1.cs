@@ -5,9 +5,9 @@ namespace Ozon.Route256.Kafka.OrderEventConsumer.Domain.Models;
 
 public sealed record ItemsAccountingV1
 {
-    public ItemId ItemId { get; init; }
-    public long Reserved { get; init; }
-    public long Sold { get; init; }
-    public long Canceled { get; init; }
-    public DateTime ModifiedAt { get; init; }
+    public required ItemId ItemId { get; init; }
+    public required long Reserved { get; init; }
+    public required long Sold { get; init; }
+    public required long Canceled { get; init; }
+    public required DateTime ModifiedAt { get; init; }
 }

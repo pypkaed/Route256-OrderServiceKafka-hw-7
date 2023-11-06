@@ -16,7 +16,6 @@ internal sealed class SystemTextJsonDeserializer<T> : IDeserializer<T>
 
     public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        var zhopa = Encoding.UTF8.GetString(data);
         return isNull
             ? throw new ArgumentNullException($"Null data encountered deserializing {typeof(T).Name} value.")
             : JsonSerializer.Deserialize<T>(data, _jsonSerializerOptions)!;
